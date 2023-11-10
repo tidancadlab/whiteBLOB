@@ -1,0 +1,14 @@
+[
+    {
+        "id":1,
+        "title":"Going to Sangrur",
+        "video_link" : "http://192.168.1.8/mpd/main.mpd",
+        "thumbnail": "http://192.168.1.8/thumbnail/Desktop%20-%202.jpg"
+    },
+    {
+        "id":2,
+        "title":"Desktop Recording",
+        "video_link" : "http://192.168.1.8/video/main.mpd",
+        "thumbnail": "http://192.168.1.8/thumbnail/Desktop%20-%203.jpg"
+    }
+]

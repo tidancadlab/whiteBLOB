@@ -1,25 +1,35 @@
-import logo from './logo.svg';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import './App.css';
+import Player from './component/Player';
+import PageNotFound from './component/pageNotFounf';
+import NavBar from './component/NavBar';
+import HomePage from './Pages/Home';
+
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <BrowserRouter>
+      <div >
+        {/* <NavFile /> */}
+        <Routes>
+          <Route path='/' Component={Home} />
+          <Route path='/*' Component={
+            PageNotFound
+          } />
+          <Route path='/player/*' Component={Player} />
+        </Routes>
+      </div>
+    </BrowserRouter>
   );
 }
 
 export default App;
+
+function Home() {
+  return (
+    <>
+      <NavBar/>
+      <HomePage />
+    </>
+  )
+}
