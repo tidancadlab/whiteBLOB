@@ -7,7 +7,6 @@ import Footer from "./component/Footer";
 import LoginPage from "./Pages/LoginPage";
 import SpeedTest from "./Pages/SpeedTest";
 import VideoUpload from "./Pages/UploadPage/index";
-import "./App.css";
 
 function App() {
   return (

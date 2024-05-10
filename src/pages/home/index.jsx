@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import Card from '../component/card';
-import { PATH } from '../config';
+import Card from '../../components/card';
+import { PATH } from '../../config';
 
 function HomePage() {
   const [videos, setVideos] = useState([]);
