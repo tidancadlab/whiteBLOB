@@ -1,45 +1,50 @@
-import { useState } from "react";
-import VideoSelect from "./SelectVideo";
-import axios from "axios";
-
-const getFileExtension = async (filename) => {
-  return filename.split(".").pop();
-};
+import { useState } from 'react';
+import VideoSelect from './SelectVideo';
+import axios from 'axios';
+import { PATH } from '../../config';
 
 function VideoUpload() {
   const [file, setFile] = useState(null);
-  const [arrayChunk, setArrayChunk] = useState([]);
-  const [internetSpeed, setInternetSpeed] = useState(0);
+  const [hasError, setHasError] = useState(null);
   const [chuckProgress, setChuckProgress] = useState({
     completedChunk: 0,
     totalChunk: 0.000001,
     progress: 0,
     rate: 0,
   });
-  const control = new AbortController();
-  const onUploadStart = async (chunks, file, ext) => {
+  const token = window.localStorage.getItem('token');
+  const readyAxios = axios.create({
+    baseURL: PATH.API_PATH,
+    headers: {
+      Authorization: `bearer ${token}`,
+    },
+  });
+  /**
+   *
+   * @param {Array<Buffer>} chunks
+   * @param {File} file
+   */
+  const onUploadStart = async (chunks, file) => {
     setChuckProgress((previous) => ({
       ...previous,
-      totalChunk: chunks.length,
+      totalChunk: chunks.length + 1,
+      fileSize: file.size,
     }));
-    const start = (chunk, size, isLast = false, id = "") => {
+    const start = (isLast = false, id = '') => {
       const formData = new FormData();
-      formData.append("id", id);
-      formData.append("video", chunk);
-      formData.append("extension", ext);
-      formData.append("isLast", isLast);
-      formData.append("name", file.name);
-      axios
-        .post(`${process.env.REACT_APP_SERVER_URL}/api/upload`, formData, {
+      const chunk = chunks.shift();
+      formData.append('id', id);
+      formData.append('video', chunk, file.name);
+      formData.append('isTail', isLast);
+      readyAxios
+        .post(`api/upload`, formData, {
           onUploadProgress: (e) => {
-            setInternetSpeed(e.rate / 1024 / 1024);
             setChuckProgress((previous) => ({
               ...previous,
               ...e,
               rate: e.rate || previous.rate,
             }));
           },
-          signal: control.signal,
         })
         .then((data) => {
           if (data.status === 200) {
@@ -48,35 +53,23 @@ function VideoUpload() {
               completedChunk: previous.completedChunk + 1,
               progress: 0,
             }));
-            chunks = chunks.slice(1);
             if (chunks.length > 0) {
-              setArrayChunk(chunks);
               const last = chunks.length === 1;
-              start(chunks[0], size, last, data.data.id);
+              start(last, data.data);
             }
           }
         })
         .catch((err) => {
-          if (
-            window.confirm(
-              err.message + " 😒😒😒😒 \nAre you want to stop uploading?"
-            )
-          ) {
-            setFile(null);
-            setChuckProgress({
-              completedChunk: 0,
-              totalChunk: 0.000001,
-              progress: 0,
-            });
-            control.abort();
-          } else {
-            // Do nothing!
-            start(chunks[0], file.size);
-          }
+          setHasError(err?.response?.data?.message);
         });
     };
-    start(chunks[0], file.size);
+    const last = chunks.length === 1;
+    start(last);
   };
+  /**
+   *
+   * @param {File} file
+   */
   const handleUpload = async (file) => {
     setFile(file);
     setChuckProgress({ completedChunk: 0, totalChunk: 0.000001, progress: 0 });
@@ -89,9 +82,7 @@ function VideoUpload() {
         chunks.push(chunk);
         offset += chunkSize;
       }
-      getFileExtension(file.name).then((ext) =>
-        onUploadStart(chunks, file, ext)
-      );
+      onUploadStart(chunks, file);
     } catch (error) {
       console.log(error);
     }
@@ -99,21 +90,18 @@ function VideoUpload() {
 
   return (
     <>
-      <div className="grow p-4 flex justify-center items-center">
-        <div className="max-w-2xl w-full max-h-[572px] h-full bg-[#141414] rounded-2xl p-10 relative">
+      <div className="flex grow flex-col items-center justify-center gap-4 p-4">
+        {hasError && <p className="rounded-lg border border-red-600 bg-red-300 px-4 py-2 text-lg text-red-600">{hasError}</p>}
+        <div className="relative h-full max-h-[572px] w-full max-w-2xl rounded-2xl bg-[#141414] p-10">
           <VideoSelect
             props={{
-              setFile,
               handleUpload,
               file,
-              arrayChunk,
               chuckProgress,
-              internetSpeed,
-              control,
             }}
           />
-          <div
-            aria-disabled={!file}
+          {/* <div
+            aria-disabled={false}
             className="aria-disabled:opacity-0 aria-disabled:w-0 w-full ease-in-out duration-[2000ms]"
           >
             <div className=" p-4 font-mono text-white">
@@ -199,17 +187,6 @@ function VideoUpload() {
                   <label className="" htmlFor="title">
                     Description
                   </label>
-                  <div
-                    contentEditable
-                    aria-required
-                    className="focus:aria-required:outline-red-500 bg-white focus:valid:outline-green-500  outline-none rounded-xl px-4 py-2 text-black"
-                    type="text"
-                    name=""
-                    id="title"
-                    placeholder="description"
-                  >
-                    <p>sdsfdsfsdf</p>
-                  </div>
                 </div>
               </form>
             </div>
@@ -227,7 +204,7 @@ function VideoUpload() {
                 Next
               </button>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </>
