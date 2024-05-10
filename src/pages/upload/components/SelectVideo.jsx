@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 /**
  *
  * @param {{chuckProgress : {total: number, loaded: number, completedChunk: number, totalChunk: number}}} props

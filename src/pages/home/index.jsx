@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import Card from '../../components/card';
-import { PATH } from '../../config';
+import Card from 'components/card';
+import { PATH } from 'configuration';
 
 function HomePage() {
   const [videos, setVideos] = useState([]);
   const [hasError, setHasError] = useState({ status: false });
   let token = window.localStorage.getItem('token');
+
   const getVideos = async () => {
     try {
       const response = await fetch(PATH.API_PATH + 'api/video', { headers: { authorization: `bearer ${token}` } });
@@ -25,7 +26,9 @@ function HomePage() {
 
   useEffect(() => {
     getVideos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
   return (
     <div className="relative m-auto grow bg-black pb-20 text-white">
       <div

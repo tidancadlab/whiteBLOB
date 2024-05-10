@@ -1,5 +1,5 @@
+import { PATH } from 'configuration';
 import React, { useState } from 'react';
-import { PATH } from '../../config';
 
 const RegisterPage = () => {
   const [userData, setUserData] = useState({ email: '', password: '', fullName: '', gender: '' });

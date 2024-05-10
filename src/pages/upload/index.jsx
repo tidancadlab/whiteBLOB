@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import VideoSelect from './SelectVideo';
 import axios from 'axios';
-import { PATH } from '../../config';
+import { PATH } from 'configuration';
+import VideoSelect from './components/SelectVideo';
 
 function VideoUpload() {
   const [file, setFile] = useState(null);

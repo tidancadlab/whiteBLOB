@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
-import thambnail from '../images/BG.png';
-import logo from '../images/LOGO_314p.png';
+import localThumbnail from 'asset/image/BG.png';
+import logo from 'asset/image/LOGO_314p.png'
 
 function Card({ videoId, thumbnail, title }) {
   return videoId ? (
@@ -29,7 +29,7 @@ function Card({ videoId, thumbnail, title }) {
     </Link>
   ) : (
     <div
-      style={{ backgroundImage: `url(${thambnail})` }}
+      style={{ backgroundImage: `url(${localThumbnail})` }}
       className={`flex aspect-[12/16] w-[100px] min-w-[136px]  items-end rounded-md
              border border-white bg-cover text-white`}>
       <p className="mb-1.5 ml-1 overflow-hidden text-ellipsis whitespace-nowrap text-xs font-semibold">Title Name</p>

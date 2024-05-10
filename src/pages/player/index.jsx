@@ -1,12 +1,10 @@
-import CardCategoryStrip from "../component/CardCategoryStrip";
-import Player from "../component/Player";
-import videoTable from '../data.json'
+import Player from 'components/Player';
 
 function PlayerPage() {
 
     return ( 
         <div className="bg-black text-white grow">
-            <Player videoTable={videoTable}/>
+            <Player/>
         </div>
      );
 }

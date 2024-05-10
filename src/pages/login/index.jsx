@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import logo from '../images/LOGO_314p.png';
-import RegisterPage from './RegisterPage';
-import { PATH } from '../../config';
+import logo from 'asset/image/LOGO_314p.png';
+import { PATH } from 'configuration';
+import RegisterPage from 'pages/register';
 
-const LoginPage = (props) => {
+const LoginPage = () => {
   const [isRegistered, setIsRegistered] = useState(true);
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({ email: '', password: '' });

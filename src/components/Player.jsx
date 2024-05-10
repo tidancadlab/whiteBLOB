@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import { PATH } from '../config';
+
 import Hls from 'hls.js';
-import logo from '../images/LOGO_314p.png';
+import { PATH } from 'configuration';
 
 function Player() {
   const [hlsData, setHlsData] = useState({ level: [], currentLevel: 0 });

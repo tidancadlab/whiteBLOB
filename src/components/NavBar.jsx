@@ -1,5 +1,5 @@
 import { Link, Navigate } from "react-router-dom";
-import logo from "../images/LOGO_80P.png";
+import logo from "asset/image/LOGO_314p.png";
 
 function NavBar() {
   const onLogout = () => {
@@ -12,8 +12,8 @@ function NavBar() {
   };
 
   const UserButton = () => {
-      if (document.cookie.includes("token")) {
-        console.log('token')
+    if (document.cookie.includes("token")) {
+      console.log('token')
       return (
         <button
           onClick={onLogout}
