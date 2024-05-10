@@ -7,7 +7,6 @@ function PlayerPage() {
     return ( 
         <div className="bg-black text-white grow">
             <Player videoTable={videoTable}/>
-            <CardCategoryStrip  videoTable={videoTable}/>
         </div>
      );
 }
