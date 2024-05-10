@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import logo from '../images/LOGO_314p.png';
 import RegisterPage from './RegisterPage';
-import { PATH } from '../config';
+import { PATH } from '../../config';
 
 const LoginPage = (props) => {
   const [isRegistered, setIsRegistered] = useState(true);
