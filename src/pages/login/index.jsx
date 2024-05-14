@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import logo from 'asset/image/LOGO_314p.png';
-import { PATH } from 'configuration';
+import { URL } from 'configuration';
 import RegisterPage from 'pages/register';
 
 const LoginPage = () => {
@@ -30,7 +30,7 @@ const LoginPage = () => {
       setLoginResult(null);
     } else {
       try {
-        const response = await fetch(`${PATH.API_PATH}api/auth/login`, {
+        const response = await fetch(`${URL.API_BASE_URL.WHITE_BLOB}api/auth/login`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

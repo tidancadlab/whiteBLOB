@@ -1,4 +1,3 @@
-import { PATH } from 'configuration';
 import React, { useState } from 'react';
 
 const RegisterPage = () => {
@@ -44,7 +43,7 @@ const RegisterPage = () => {
       setRegistrationStatus({ success: false, message: 'Registration failed. Please try again.' });
     });
 
-    xhr.open('POST', `${PATH.API_PATH}api/auth/register`, true);
+    xhr.open('POST', `${URL.API_BASE_URL.WHITE_BLOB}api/auth/register`, true);
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.send(JSON.stringify(userData));
   };

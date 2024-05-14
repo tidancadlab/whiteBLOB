@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import Card from 'components/card';
-import { PATH } from 'configuration';
 
 function HomePage() {
   const [videos, setVideos] = useState([]);
@@ -9,7 +8,7 @@ function HomePage() {
 
   const getVideos = async () => {
     try {
-      const response = await fetch(PATH.API_PATH + 'api/video', { headers: { authorization: `bearer ${token}` } });
+      const response = await fetch(URL.API_BASE_URL.WHITE_BLOB + 'api/video', { headers: { authorization: `bearer ${token}` } });
       const data = await response.json();
       setHasError({ ...data, status: true });
       if (response.ok) {

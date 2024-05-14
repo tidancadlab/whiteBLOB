@@ -39,4 +39,6 @@ video[poster] {
   }
 }
 
-/*# sourceMappingURL=output.css.map */
+textarea::-webkit-scrollbar {
+  display: none;
+}

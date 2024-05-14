@@ -1,17 +1,11 @@
-function Progress({ uploadProgress = 50 }) {
-    return (
-        uploadProgress > 0 && (
-            <div className="mt-4 self-stretch">
-                <p className="mb-2 text-white">Upload Progress: {uploadProgress}%</p>
-                <div className="bg-gray-300 h-4 relative rounded-lg">
-                    <div
-                        className={`bg-blue-500 absolute h-full rounded`}
-                        style={{ width: `${uploadProgress}%` }}
-                    ></div>
-                </div>
-            </div>
-        )
-    );
+function Progress({ uploadProgress = 60, color }) {
+  return (
+    <div className="w-full self-stretch py-2">
+      <div className="relative h-0.5 rounded-lg bg-gray-700">
+        <div className={`absolute h-full rounded bg-white duration-200 ease-in-out`} style={{ width: `${uploadProgress}%` }}></div>
+      </div>
+    </div>
+  );
 }
 
 export default Progress;
