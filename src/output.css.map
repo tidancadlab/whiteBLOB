@@ -1,0 +1,10 @@
+{
+    "version": 3,
+    "sourceRoot": "",
+    "sources": [
+        "index.css"
+    ],
+    "names": [],
+    "mappings": "AAAA;AACA;AACA;AAEA;EACI;;;AAEJ;EACI;;;AAGJ;EACI;;;AAEJ;EACI;;;AAEJ;EACI;IACI;;EAEJ;IACI;IACA;IACA;IACA;;EAEJ;IACI;IACA;IACA;IACA;;EAEJ;IACI",
+    "file": "index.css"
+}

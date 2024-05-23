@@ -1,10 +1,6 @@
 {
-  "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "$src": ["src/*"]
-    }
-  },
-  "include": ["src/**/*.d.ts", "src/**/*.js", "src/**/*.svelte"],
-  "exclude": ["node_modules", "**/node_modules", "dist"]
+"compilerOptions": {
+"baseUrl": "src"
+},
+"include": ["src"]
 }

@@ -11,7 +11,7 @@
 }
 
 .poster_bg {
-  background-image: url(./images/BG.png);
+  background-image: url(asset/image/BG.png);
 }
 
 video[poster] {
@@ -20,7 +20,7 @@ video[poster] {
 
 @media screen and (min-width: 640px) {
   .poster_bg {
-    background-image: url(./images/bg_l.png);
+    background-image: url(asset/image/bg_l.png);
   }
   .scroll_style::-webkit-scrollbar {
     height: 6px;
@@ -39,4 +39,6 @@ video[poster] {
   }
 }
 
-/*# sourceMappingURL=output.css.map */
+textarea::-webkit-scrollbar {
+  display: none;
+}

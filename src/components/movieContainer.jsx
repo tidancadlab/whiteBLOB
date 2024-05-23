@@ -1,28 +1,15 @@
-import Card from "./card";
-import data from '../data.json'
-function MovieContainer() {
+import { twMerge } from 'tailwind-merge';
 
+import Card from './card';
 
-
-
-
-    return (
-        <div className="flex gap-2 flex-wrap justify-center p-2">
-            {data.map((v, i) => {
-                return (
-                    <Card data={v} />
-                )
-            })}
-            <Card/>
-            <Card/>
-            <Card/>
-            <Card/>
-            <Card/>
-            <Card/>
-            <Card/>
-            <Card/>
-        </div>
-    );
+function MovieContainer({ className, data = [] }) {
+  return (
+    <div className={twMerge(' gap-6 p-2', className)}>
+      {data.slice(0, 10).map((v, i) => {
+        return <Card thumbnail={v.thumbnails[0]?.url} videoId={v.id} title={v.full_name} key={v.id} />;
+      })}
+    </div>
+  );
 }
 
 export default MovieContainer;

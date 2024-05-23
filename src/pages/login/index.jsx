@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import logo from '../images/LOGO_314p.png';
-import RegisterPage from './RegisterPage';
-import { PATH } from '../../config';
+import logo from 'asset/image/LOGO_314p.png';
+import { URL } from 'configuration';
+import RegisterPage from 'pages/register';
 
-const LoginPage = (props) => {
+const LoginPage = () => {
   const [isRegistered, setIsRegistered] = useState(true);
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({ email: '', password: '' });
@@ -30,7 +30,7 @@ const LoginPage = (props) => {
       setLoginResult(null);
     } else {
       try {
-        const response = await fetch(`${PATH.API_PATH}api/auth/login`, {
+        const response = await fetch(`${URL.API_BASE_URL.WHITE_BLOB}api/auth/login`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
