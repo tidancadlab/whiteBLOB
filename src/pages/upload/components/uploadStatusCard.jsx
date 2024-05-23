@@ -14,7 +14,6 @@ import Progress from './ProgressBar';
  */
 const ProgressAndStatus = ({ file, chuckProgress }) => {
   let { rate = 0, progress = 0, totalChunk = 0, completedChunk = 0 } = chuckProgress;
-
   rate = (rate / 1024).toFixed(2);
 
   const percentCompleted = (((completedChunk + progress) / totalChunk) * 100).toFixed(2);

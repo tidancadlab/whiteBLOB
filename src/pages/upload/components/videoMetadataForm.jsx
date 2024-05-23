@@ -58,13 +58,7 @@ const VideoMetadataForm = ({ file }) => {
           <Input onChange={onInputChange} disabled={!activeEdit} name="title" required value={formData.title}>
             Title
           </Input>
-          <Input
-            onChange={onInputChange}
-            disabled={!activeEdit}
-            name="description"
-            type="textArea"
-            className="p-2"
-            value={formData.description}>
+          <Input onChange={onInputChange} disabled={!activeEdit} name="description" type="textArea" className="p-2" value={formData.description}>
             Description
           </Input>
           <p className="-mb-2">Category</p>
@@ -76,7 +70,7 @@ const VideoMetadataForm = ({ file }) => {
                 disabled={!activeEdit}
                 checked={formData.category === value.title}
                 aria-checked={formData.category === value.title}
-                className="select-none duration-100 ease-in-out peer-checked:outline disabled:outline-none peer-hover:outline-2 disabled:peer-active:outline-8"
+                className="select-none duration-100 ease-in-out disabled:outline-none peer-checked:outline peer-hover:outline-2 disabled:peer-active:outline-8"
                 name="category"
                 id={value.id}
                 value={value.title}
@@ -85,6 +79,7 @@ const VideoMetadataForm = ({ file }) => {
               </Radio>
             ))}
           </div>
+          <Input onChange={onInputChange} disabled={!activeEdit} value={formData.tags} name="tags" type="textArea" labelTitle="Tags (put space after every tag)" />
           <div className="flex items-center justify-end gap-4">
             <Alert hidden={apiStatus !== apiStateStatus.rejected} type="error">
               Something went wrong! Please try again.
@@ -112,6 +107,7 @@ const VideoMetadataForm = ({ file }) => {
                     title: file.name.split('.')[0],
                     category: category[0].title,
                     description: '',
+                    tags: '',
                   });
                 }}
                 className="bg-red-500">

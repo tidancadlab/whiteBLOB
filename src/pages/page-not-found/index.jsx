@@ -1,16 +1,17 @@
-import { useParams } from "react-router-dom";
+import { useParams } from 'react-router-dom';
 
 function PageNotFound() {
-    let url = useParams()
+  let url = useParams();
 
-    return (
-        <div className="flex items-center justify-center h-screen grow bg-black text-white">
-            <div className="text-center">
-                <h2 className="sm:text-4xl text-3xl font-bold mb-4">404 - Page Not Found</h2>
-                <p>The {url['*']} page you are looking for does not exist.</p>
-            </div>
-        </div>
-    )
+  return (
+    <div className="flex grow items-center justify-center bg-black text-white">
+      <div className="flex flex-col items-center justify-center text-center text-gray-800">
+        <h1 className=" text-9xl font-extrabold">404</h1>
+        <p className="text-5xl">Page Not Found</p>
+        <p className="text-xl mt-4">The {url['*']} page you are looking for does not exist.</p>
+      </div>
+    </div>
+  );
 }
 
 export default PageNotFound;

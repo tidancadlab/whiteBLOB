@@ -1,27 +1,62 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
-import HomePage from 'pages/home';
-import NavBar from 'components/NavBar';
-import LoginPage from 'pages/login';
-import VideoUpload from 'pages/upload';
-import PlayerPage from 'pages/player';
-import PageNotFound from 'pages/page-not-found';
-import Footer from 'components/Footer';
+import { useState, lazy, Suspense } from 'react';
+import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
+
+import { useIsOnline } from 'hooks/useCheckNetwork';
+import { StorageContext } from 'storage';
+import ProtectedRouter from 'router/protectedRouter';
+import CustomRoute from 'router/customRoute';
+import LoadingComponent from 'components/loadingComponent';
+import NoNavRoute from 'router/no-nav.route';
+
+const HomePage = lazy(() => import('pages/home'));
+const VideoUpload = lazy(() => import('pages/upload'));
+const PlayerPage = lazy(() => import('pages/player'));
+const PageNotFound = lazy(() => import('pages/page-not-found'));
+const LoginPage = lazy(() => import('pages/login'));
+const MoviesPage = lazy(() => import('pages/movies'));
+const ShowsPage = lazy(() => import('pages/shows'));
 
 function App() {
+  const isOnline = useIsOnline();
+  const [allVideoList, setAllVideoList] = useState([]);
+  const [uploadFile, setUploadFile] = useState(null);
+
+  const onUploadFile = (file) => {
+    setUploadFile(file);
+  };
+
   return (
-    <BrowserRouter>
-      <div className="flex min-h-screen flex-col bg-black">
-        <NavBar />
-        <Routes>
-          <Route path="/" Component={HomePage} />
-          <Route path="/login" Component={LoginPage} />
-          <Route path="/upload" Component={VideoUpload} />
-          <Route path="/watch/:id" Component={PlayerPage} />
-          <Route path="/*" Component={PageNotFound} />
-        </Routes>
-        <Footer />
-      </div>
-    </BrowserRouter>
+    <StorageContext.Provider
+      value={{
+        isOnline,
+        uploadFile,
+        onUploadFile,
+        allVideoList,
+        setAllVideoList,
+      }}>
+      <BrowserRouter>
+        <Suspense fallback={<LoadingComponent />}>
+          <div className="flex min-h-screen flex-col bg-black">
+            <Routes>
+              <Route path="/" element={<CustomRoute />}>
+                <Route exact path="/" element={<HomePage />} />
+                <Route exact path="/movie" element={<MoviesPage />} />
+                <Route exact path="/family" element={<ShowsPage />} />
+                <Route exact path="/login" element={<LoginPage />} />
+                <Route exact path="/page-not-found" element={<PageNotFound />} />
+              </Route>
+              <Route path="/" element={<NoNavRoute />}>
+                <Route path="/watch/:id" element={<PlayerPage />} />
+              </Route>
+              <Route path="/" element={<ProtectedRouter />}>
+                <Route path="/upload" element={<VideoUpload />} />
+              </Route>
+              <Route path="/*" element={<Navigate to={'/page-not-found'} />} />
+            </Routes>
+          </div>
+        </Suspense>
+      </BrowserRouter>
+    </StorageContext.Provider>
   );
 }
 export default App;

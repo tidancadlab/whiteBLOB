@@ -1,45 +1,38 @@
+import { useContext, useEffect, useState } from 'react';
+import { MdLocalMovies } from 'react-icons/md';
 import readyAxios from 'api/protected.api';
 import { apiStateStatus } from 'utilities';
+import { StorageContext } from 'storage';
+
 import VideoMetadataForm from './videoMetadataForm';
 import { Alert } from 'components/alert';
-import { useEffect, useState } from 'react';
 import { Button } from 'components/form-field';
-import { MdLocalMovies } from 'react-icons/md';
 import ProgressAndStatus from './uploadStatusCard';
 
 let controller = new AbortController();
 
-const abortRequest = async () => {
-  controller.abort();
+const abortRequest = (reason = '') => {
+  controller.abort(reason);
 };
 
-const createNewAbortControllerInstance = async () => {
+const createNewAbortControllerInstance = () => {
   controller = new AbortController();
 };
 
-/**
- *
- * @param {import('./uploadStatusCard').propsObject | {onRetry: Function, onCancel: Function}}
- * @returns
- */
-const UploadFormSection = ({ file, setFile }) => {
+const UploadFormSection = () => {
+  const { uploadFile, onUploadFile } = useContext(StorageContext);
+
   const [chunks, setChunks] = useState([]);
   const [apiStatus, setApiStatus] = useState(apiStateStatus.initial);
-
-  const [chuckProgress, setChuckProgress] = useState({
-    completedChunk: 0,
-    totalChunk: 0.000001,
-    progress: 0,
-    rate: 0,
-  });
+  const [chuckProgress, setChuckProgress] = useState({});
 
   /**
    *
    * @param {File} file
    */
-  const handleUpload = async (file) => {
+  const handleUpload = (file) => {
     try {
-      const chunkSize = 1024 * 1024 * 24;
+      const chunkSize = 1024 * 1024 * 2;
       const chunkList = [];
       let offset = 0;
 
@@ -49,21 +42,24 @@ const UploadFormSection = ({ file, setFile }) => {
         offset += chunkSize;
       }
 
-      setChuckProgress({ completedChunk: 0, totalChunk: chunkList.length, progress: 0 });
+      setChuckProgress((previous) => ({ ...previous, completedChunk: 0, totalChunk: chunkList.length }));
       setChunks(chunkList);
+
     } catch (error) {
       console.log(error);
     }
   };
 
-  const onUploadChunk = (chunk, isLast = false, id = file?.id) => {
+  const onUploadChunk = (chunk, isLast = false) => {
+    const { id, name, lastModified, size } = uploadFile;
+    
     setApiStatus(apiStateStatus.pending);
 
     const formData = new FormData();
     formData.append('id', id);
-    formData.append('video', chunk, file?.name);
-    formData.append('lastModified', file?.lastModified);
-    formData.append('size', file?.size);
+    formData.append('video', chunk, name);
+    formData.append('lastModified', lastModified);
+    formData.append('size', size);
     formData.append('isTail', isLast);
 
     readyAxios
@@ -79,7 +75,6 @@ const UploadFormSection = ({ file, setFile }) => {
       })
       .then((data) => {
         if (data.status === 200) {
-          console.log(data.data);
           setApiStatus(apiStateStatus.resolved);
           setChuckProgress((previous) => ({
             ...previous,
@@ -92,6 +87,7 @@ const UploadFormSection = ({ file, setFile }) => {
         }
       })
       .catch((err) => {
+        console.log(err);
         setApiStatus(apiStateStatus.rejected);
       });
   };
@@ -103,11 +99,14 @@ const UploadFormSection = ({ file, setFile }) => {
     onUploadChunk(chunk, isLast);
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(runUploading, [chunks]);
 
   useEffect(() => {
-    handleUpload(file);
-  }, [file]);
+    createNewAbortControllerInstance();
+    handleUpload(uploadFile);
+    return () => abortRequest();
+  }, [uploadFile]);
 
   const UploadingStatusCard = () => {
     return (
@@ -115,21 +114,20 @@ const UploadFormSection = ({ file, setFile }) => {
         <div className=" hidden h-full items-center justify-center self-stretch px-4 sm:flex">
           <MdLocalMovies className="fill-white text-5xl" />
         </div>
-        <ProgressAndStatus apiStatus={apiStatus} chuckProgress={chuckProgress} file={file} />
+        <ProgressAndStatus apiStatus={apiStatus} chuckProgress={chuckProgress} file={uploadFile} />
         <div className="absolute -top-10 left-0 flex items-center justify-center gap-2 self-stretch sm:relative sm:top-0 sm:flex-col sm:px-4">
-          <Button
-            onClick={async () => {
-              await abortRequest();
-              setFile(null);
-            }}>
-            Remove
-          </Button>
-          {chuckProgress.totalChunk !== chuckProgress.completedChunk ||
-            (apiStateStatus.rejected === apiStatus && (
-              <Button onClick={abortRequest} className="bg-red-500">
-                Cancel
-              </Button>
-            ))}
+          {chuckProgress.totalChunk !== chuckProgress.completedChunk || apiStateStatus.rejected !== apiStatus ? (
+            <Button onClick={abortRequest}>Cancel</Button>
+          ) : null}
+          {chuckProgress.totalChunk === chuckProgress.completedChunk || apiStateStatus.rejected === apiStatus ? (
+            <Button
+              onClick={() => {
+                onUploadFile(null);
+              }}
+              className="bg-red-500">
+              Remove
+            </Button>
+          ) : null}
         </div>
       </div>
     );
@@ -148,7 +146,7 @@ const UploadFormSection = ({ file, setFile }) => {
           Something went wrong
         </Alert>
         <UploadingStatusCard />
-        <VideoMetadataForm file={file} />
+        <VideoMetadataForm file={uploadFile} />
       </div>
     </div>
   );
