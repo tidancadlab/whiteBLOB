@@ -7,6 +7,7 @@ import ProtectedRouter from 'router/protectedRouter';
 import CustomRoute from 'router/customRoute';
 import LoadingComponent from 'components/loadingComponent';
 import NoNavRoute from 'router/no-nav.route';
+import UserProfile from 'pages/user-profile';
 
 const HomePage = lazy(() => import('pages/home'));
 const VideoUpload = lazy(() => import('pages/upload'));
@@ -19,18 +20,11 @@ const ShowsPage = lazy(() => import('pages/shows'));
 function App() {
   const isOnline = useIsOnline();
   const [allVideoList, setAllVideoList] = useState([]);
-  const [uploadFile, setUploadFile] = useState(null);
-
-  const onUploadFile = (file) => {
-    setUploadFile(file);
-  };
 
   return (
     <StorageContext.Provider
       value={{
         isOnline,
-        uploadFile,
-        onUploadFile,
         allVideoList,
         setAllVideoList,
       }}>
@@ -43,6 +37,9 @@ function App() {
                 <Route exact path="/movie" element={<MoviesPage />} />
                 <Route exact path="/family" element={<ShowsPage />} />
                 <Route exact path="/login" element={<LoginPage />} />
+                <Route path="/user">
+                  <Route path="/user/profile" element={<UserProfile />} />
+                </Route>
                 <Route exact path="/page-not-found" element={<PageNotFound />} />
               </Route>
               <Route path="/" element={<NoNavRoute />}>

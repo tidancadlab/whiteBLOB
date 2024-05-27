@@ -5,13 +5,13 @@ import Footer from 'components/Footer';
 
 const ProtectedRouter = () =>
   window.localStorage.getItem('token') ? (
-    <div className="m-4">
-      <Button className="bg-green-500 text-black" onClick={() => window.history.back()}>
+    <>
+      <Button className="bg-green-500 text-black m-8" onClick={() => window.history.back()}>
         Back
       </Button>
       <Outlet />
       <Footer />
-    </div>
+    </>
   ) : (
     <Navigate to={'/login'} />
   );

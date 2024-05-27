@@ -1,3 +1,4 @@
+import { URL } from 'configuration';
 import React, { useState } from 'react';
 
 const RegisterPage = () => {

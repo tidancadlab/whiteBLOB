@@ -11,7 +11,9 @@ const onRestAbortController = () => {
   abortRequest = new AbortController();
 };
 
-function Player({ id, isPlayer }) {
+let controllerTimerId = null;
+
+function Player({ id, isPlayer, maxHeight, setVideoMetadata }) {
   const [apiStatus, setApiStatus] = useState(apiStateStatus.initial);
   const [hlsData, setHlsData] = useState({ level: [], currentLevel: 0 });
   const [showControls, setShowControls] = useState(false);
@@ -37,7 +39,7 @@ function Player({ id, isPlayer }) {
   useEffect(() => {
     onRestAbortController();
 
-    hls.current = new Hls({ maxBufferSize: 5, backBufferLength: 5 });
+    hls.current = new Hls({ maxBufferSize: 5, backBufferLength: 5, lowLatencyMode: true });
 
     const getVideoUrl = async () => {
       setApiStatus(apiStateStatus.pending);
@@ -53,6 +55,10 @@ function Player({ id, isPlayer }) {
         if (response.ok) {
           const result = await response.json();
           setVideoUrl(result.data.url);
+          if (isPlayer) {
+            setVideoMetadata(result.data);
+          }
+
           setApiStatus(apiStateStatus.resolved);
         } else {
           setApiStatus(apiStateStatus.rejected);
@@ -87,7 +93,6 @@ function Player({ id, isPlayer }) {
         if (!player.current?.paused) {
           player.current.play();
         }
-
       });
 
       hls.current.on(Hls.Events.LEVEL_SWITCHED, (e, data) => {
@@ -98,12 +103,46 @@ function Player({ id, isPlayer }) {
         setHlsData((prev) => ({ ...prev, nextLevel: data.level, currentLevel: data.level }));
       });
 
-      document.addEventListener('fullscreenchange', (e) => {
-        setMediaContainer((prev) => ({ ...prev, isFullScreen: !prev.isFullScreen }));
+      hls.current.on(Hls.Events.AUDIO_TRACK_SWITCHING, (e, data) => {
+        setAudioTrack((previous) => ({ ...previous, current: data.id }));
       });
+
+      if (isPlayer) {
+        document.addEventListener('keypress', (e) => {
+          e.preventDefault();
+          const videoPlayer = player.current;
+          if (!videoPlayer || e.target.tagName === 'VIDEO' || videoPlayer?.readyState < videoPlayer?.HAVE_FUTURE_DATA) return;
+          if (e.code === 'Space') {
+            if (videoPlayer?.paused) {
+              console.log(videoPlayer?.paused);
+              videoPlayer?.play();
+            } else {
+              videoPlayer?.pause();
+            }
+          }
+        });
+      }
+
+      // document.addEventListener('fullscreenchange', (e) => {
+      //   setMediaContainer((prev) => ({ ...prev, isFullScreen: !prev.isFullScreen }));
+      // });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [videoUrl]);
+
+  const onShowControllers = () => {
+    setShowControls(true);
+    clearTimeout(controllerTimerId);
+    controllerTimerId = null;
+    controllerTimerId = setTimeout(() => {
+      setShowControls(false);
+    }, 3000);
+  };
+
+  const onHideController = () => {
+    clearTimeout(controllerTimerId);
+    setShowControls(false);
+  };
 
   if (apiStatus === apiStateStatus.pending) {
     return (
@@ -125,18 +164,17 @@ function Player({ id, isPlayer }) {
     <>
       {videoUrl && (
         <div
-          onMouseEnter={() => setShowControls(true)}
-          onMouseLeave={() => setShowControls(false)}
-          onTouchEnd={() => setShowControls((previous) => !previous)}
+          onMouseMove={onShowControllers}
+          onTouchStart={onShowControllers}
+          onMouseLeave={onHideController}
           ref={mediaOverlay}
           className="group relative aspect-video max-h-[90vh]  w-full ">
           <video
-            disablePictureInPicture
-            controlsList="nodownload noplaybackrate nofullscreen"
             autoPlay
             ref={player}
             controls
-            className="h-full w-full bg-black sm:rounded-lg outline-none"></video>
+            style={{ maxHeight: `${maxHeight}px` }}
+            className="h-full w-full bg-black outline-none sm:rounded-lg"></video>
           {showControls && isPlayer && (
             <PlayerControls
               audioTrack={audioTrack}

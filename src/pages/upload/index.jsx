@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { v4 as uuidV4 } from 'uuid';
 
 import { Input } from 'components/form-field';
@@ -6,20 +6,24 @@ import UploadFormSection from './components/uploadSection';
 import { StorageContext } from 'storage';
 
 function VideoUpload() {
-  const { isOnline, onUploadFile, uploadFile } = useContext(StorageContext);
+  const { isOnline } = useContext(StorageContext);
   const [file, setFile] = useState(null);
 
   const FileDetails = () => {
-    if (uploadFile) {
+    if (file) {
       return <UploadFormSection file={file} setFile={setFile} />;
     }
-
     if (!isOnline) {
       return <h1 className="flex grow items-center justify-center text-center text-7xl font-extrabold text-gray-800">You are offline</h1>;
     }
     return <h1 className="flex grow items-center justify-center text-center text-7xl font-extrabold text-gray-800">No Video to upload</h1>;
   };
-
+  useEffect(() => {
+    return () => {
+      setFile(null);
+      console.log('closed upload');
+    };
+  }, []);
   return (
     <>
       <div className="flex grow flex-col items-center justify-start gap-4 p-4">
@@ -29,10 +33,10 @@ function VideoUpload() {
             onChange={(e) => {
               const file = e.target.files[0];
               file.id = uuidV4();
-              onUploadFile(file);
+              setFile(file);
             }}
             name="file"
-            hidden={uploadFile !== null || !isOnline}
+            hidden={file !== null}
             id="file"
             type="file">
             Select file
