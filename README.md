@@ -172,4 +172,4 @@ This project is licensed under the MIT License.
 
 ---
 
-For any further questions or support, please contact us at [support@example.com](mailto:info@whiteblob.site).
+For any further questions or support, please contact us at [info@whiteblob.site](mailto:info@whiteblob.site).
