@@ -12,15 +12,16 @@ const PlayerControls = ({ videoUrl, mediaOverlay, hlsData, player, audioTrack, h
   };
   return (
     videoUrl && (
-      <div className="absolute top-0 flex w-full justify-end gap-4 bg-gradient-to-b from-black/70 from-0% to-black/10 to-100% p-4 text-xs text-white opacity-0 duration-300 ease-in group-hover:opacity-100 lg:text-base">
+      <div id='customController' className="absolute top-0 flex w-full justify-end gap-4 bg-gradient-to-b from-black/70 from-0% to-black/10 to-100% p-4 text-xs text-white opacity-0 duration-300 ease-in group-hover:opacity-100 lg:text-base">
         {audioTrack.track.length > 0 && (
           <select
+          value={audioTrack.current}
             className="rounded px-4 text-black"
             onChange={(e) => {
               hls.current.audioTrack = e.target.value;
             }}>
             {audioTrack.track.map((audio) => (
-              <option key={audio.id} value={audio.id} selected={audio.id === audioTrack.current}>
+              <option key={audio.id} value={audio.id}>
                 {audio.lang}
               </option>
             ))}
@@ -36,7 +37,7 @@ const PlayerControls = ({ videoUrl, mediaOverlay, hlsData, player, audioTrack, h
           </svg>
           <p className="absolute -top-2 left-4 font-bold text-red-500">{hlsData.level[hlsData.currentLevel]?.height}</p>
         </button>
-        <button onClick={onFullScreen}>
+        {/* <button onClick={onFullScreen}>
           {mediaContainer.isFullScreen ? (
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6">
               <path
@@ -54,7 +55,7 @@ const PlayerControls = ({ videoUrl, mediaOverlay, hlsData, player, audioTrack, h
               />
             </svg>
           )}
-        </button>
+        </button> */}
         <div
           id="levels"
           value={hlsData?.currentLevel}

@@ -1,8 +1,7 @@
-import { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { MdLocalMovies } from 'react-icons/md';
 import readyAxios from 'api/protected.api';
 import { apiStateStatus } from 'utilities';
-import { StorageContext } from 'storage';
 
 import VideoMetadataForm from './videoMetadataForm';
 import { Alert } from 'components/alert';
@@ -19,9 +18,7 @@ const createNewAbortControllerInstance = () => {
   controller = new AbortController();
 };
 
-const UploadFormSection = () => {
-  const { uploadFile, onUploadFile } = useContext(StorageContext);
-
+const UploadFormSection = ({ file, setFile }) => {
   const [chunks, setChunks] = useState([]);
   const [apiStatus, setApiStatus] = useState(apiStateStatus.initial);
   const [chuckProgress, setChuckProgress] = useState({});
@@ -32,7 +29,7 @@ const UploadFormSection = () => {
    */
   const handleUpload = (file) => {
     try {
-      const chunkSize = 1024 * 1024 * 2;
+      const chunkSize = 1024 * 1024 * 4;
       const chunkList = [];
       let offset = 0;
 
@@ -44,15 +41,14 @@ const UploadFormSection = () => {
 
       setChuckProgress((previous) => ({ ...previous, completedChunk: 0, totalChunk: chunkList.length }));
       setChunks(chunkList);
-
     } catch (error) {
       console.log(error);
     }
   };
 
   const onUploadChunk = (chunk, isLast = false) => {
-    const { id, name, lastModified, size } = uploadFile;
-    
+    const { id, name, lastModified, size } = file;
+
     setApiStatus(apiStateStatus.pending);
 
     const formData = new FormData();
@@ -104,9 +100,11 @@ const UploadFormSection = () => {
 
   useEffect(() => {
     createNewAbortControllerInstance();
-    handleUpload(uploadFile);
-    return () => abortRequest();
-  }, [uploadFile]);
+    handleUpload(file);
+    return () => {
+      abortRequest();
+    };
+  }, [file]);
 
   const UploadingStatusCard = () => {
     return (
@@ -114,7 +112,7 @@ const UploadFormSection = () => {
         <div className=" hidden h-full items-center justify-center self-stretch px-4 sm:flex">
           <MdLocalMovies className="fill-white text-5xl" />
         </div>
-        <ProgressAndStatus apiStatus={apiStatus} chuckProgress={chuckProgress} file={uploadFile} />
+        <ProgressAndStatus apiStatus={apiStatus} chuckProgress={chuckProgress} file={file} />
         <div className="absolute -top-10 left-0 flex items-center justify-center gap-2 self-stretch sm:relative sm:top-0 sm:flex-col sm:px-4">
           {chuckProgress.totalChunk !== chuckProgress.completedChunk || apiStateStatus.rejected !== apiStatus ? (
             <Button onClick={abortRequest}>Cancel</Button>
@@ -122,7 +120,7 @@ const UploadFormSection = () => {
           {chuckProgress.totalChunk === chuckProgress.completedChunk || apiStateStatus.rejected === apiStatus ? (
             <Button
               onClick={() => {
-                onUploadFile(null);
+                setFile(null);
               }}
               className="bg-red-500">
               Remove
@@ -146,7 +144,7 @@ const UploadFormSection = () => {
           Something went wrong
         </Alert>
         <UploadingStatusCard />
-        <VideoMetadataForm file={uploadFile} />
+        <VideoMetadataForm file={file} />
       </div>
     </div>
   );

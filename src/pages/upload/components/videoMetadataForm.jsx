@@ -10,6 +10,10 @@ const category = [
   { id: 2, title: 'Other' },
 ];
 
+let isSaved = false;
+let metadataId = null;
+let errorMessage = null;
+
 const VideoMetadataForm = ({ file }) => {
   const [isHidden, setIsHidden] = useState(true);
   const [activeEdit, setActiveEdit] = useState(false);
@@ -19,10 +23,15 @@ const VideoMetadataForm = ({ file }) => {
     title: file.name.split('.')[0],
     description: '',
     category: category[0].title,
+    tags: [],
   });
 
   const onInputChange = (e) => {
     const { name, value } = e.target;
+    if (name === 'tags') {
+      setFormData((previous) => ({ ...previous, [name]: value.split(' ') }));
+      return;
+    }
     setFormData((previous) => ({ ...previous, [name]: value }));
   };
 
@@ -30,21 +39,35 @@ const VideoMetadataForm = ({ file }) => {
     e.preventDefault();
     setApiStatus(apiStateStatus.pending);
     try {
-      formData.id = file.id;
-
-      const response = await protectedApi.post('api/video/metadata', formData, {
-        onUploadProgress: (e) => {
-          console.log(e);
-        },
-      });
+      formData.videoId = file.id;
+      let response = null;
+      if (isSaved) {
+        formData.id = metadataId;
+        response = await protectedApi.put('api/video/profile', formData);
+      } else {
+        response = await protectedApi.post('api/video/profile', formData);
+      }
       if (response.status === 200) {
         setApiStatus(apiStateStatus.resolved);
+        errorMessage = 'Successfully Updated';
+      }
+      if (response.status === 409) {
+        setApiStatus(apiStateStatus.resolved);
+        errorMessage = 'Already Saved';
+      }
+      if (response.status === 201) {
+        metadataId = response.data.id;
+        errorMessage = 'Successfully Saved';
+        setApiStatus(apiStateStatus.resolved);
+        isSaved = true;
         setActiveEdit(false);
       } else {
         setApiStatus(apiStateStatus.rejected);
+        errorMessage = 'Something went wrong ' + response.data.error;
       }
     } catch (error) {
       setApiStatus(apiStateStatus.rejected);
+      errorMessage = 'Something went wrong ' + error.message;
       console.log(error);
     }
   };
@@ -79,10 +102,19 @@ const VideoMetadataForm = ({ file }) => {
               </Radio>
             ))}
           </div>
-          <Input onChange={onInputChange} disabled={!activeEdit} value={formData.tags} name="tags" type="textArea" labelTitle="Tags (put space after every tag)" />
+          <Input
+            onChange={onInputChange}
+            disabled={!activeEdit}
+            value={formData.tags.join(' ')}
+            name="tags"
+            type="textArea"
+            labelTitle="Tags (put space after every tag)"
+          />
           <div className="flex items-center justify-end gap-4">
-            <Alert hidden={apiStatus !== apiStateStatus.rejected} type="error">
-              Something went wrong! Please try again.
+            <Alert
+              hidden={apiStatus !== apiStateStatus.pending || apiStatus !== apiStateStatus.initial}
+              type={apiStatus !== apiStateStatus.resolved ? 'success' : 'error'}>
+              {errorMessage}
             </Alert>
             <div className="flex gap-4 self-end">
               {activeEdit && (
@@ -91,7 +123,7 @@ const VideoMetadataForm = ({ file }) => {
                   disabled={apiStateStatus.pending === apiStatus}
                   className="aria-busy:animate-pulse"
                   type="submit">
-                  Save
+                  {isSaved ? 'Update' : 'Save'}
                 </Button>
               )}
               {!activeEdit && (

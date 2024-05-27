@@ -6,7 +6,7 @@ function MovieContainer({ className, data = [] }) {
   return (
     <div className={twMerge(' gap-6 p-2', className)}>
       {data.slice(0, 10).map((v, i) => {
-        return <Card thumbnail={v.thumbnails[0]?.url} videoId={v.id} title={v.full_name} key={v.id} />;
+        return <Card {...v} thumbnail={v.thumbnails[0]?.url} videoId={v.id} title={v.title} key={v.id} />;
       })}
     </div>
   );
