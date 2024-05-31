@@ -6,29 +6,29 @@ import { apiStateStatus } from 'utilities';
 import Card from 'components/card';
 import { NoInternet } from 'components/no-internet';
 import { useSearchParams } from 'react-router-dom';
+import protectedApi from 'api/protected.api';
 
 function HomePage() {
   let { allVideoList, setAllVideoList, isOnline } = useContext(StorageContext);
 
   const [apiStatus, setApiStatus] = useState(apiStateStatus.initial);
+  const [alertMessage, setAlertMessage] = useState('');
   const [search, setSearch] = useSearchParams();
-
-  let token = window.localStorage.getItem('token');
 
   const getVideos = async () => {
     setApiStatus(apiStateStatus.pending);
     try {
-      const response = await fetch(URL.API_BASE_URL.WHITE_BLOB + 'api/video', { headers: { authorization: `bearer ${token}` } });
-      const data = await response.json();
-      if (response.ok) {
+      const response = await protectedApi('api/video');
+      if (response.status === 200) {
         setApiStatus(apiStateStatus.resolved);
-        setAllVideoList(data.videos);
+        setAllVideoList(response.data.videos);
       } else {
         setApiStatus(apiStateStatus.rejected);
       }
     } catch (error) {
       setApiStatus(apiStateStatus.rejected);
-      console.error(error);
+      setAlertMessage(error.message);
+      console.log(error);
     }
   };
 
@@ -52,12 +52,12 @@ function HomePage() {
   if (apiStatus === apiStateStatus.rejected) {
     return (
       <div className="flex w-full grow items-center justify-center text-xl font-extrabold text-red-950 sm:text-7xl">
-        <p className="text-center text-[80%]">videos not found</p>
+        <p className="text-center text-[80%]">{alertMessage || 'videos not found'}</p>
       </div>
     );
   }
 
-  if (allVideoList.length <= 0) {
+  if (apiStatus === apiStateStatus.resolved && allVideoList.length <= 0) {
     return (
       <div className="flex w-full grow items-center justify-center text-xl font-extrabold text-red-950 sm:text-7xl">
         <p className="text-center text-[80%]">"{search.get('search')?.trim()}" video not found</p>

@@ -8,6 +8,7 @@ import CustomRoute from 'router/customRoute';
 import LoadingComponent from 'components/loadingComponent';
 import NoNavRoute from 'router/no-nav.route';
 import UserProfile from 'pages/user-profile';
+import RegisterPage from 'pages/register';
 
 const HomePage = lazy(() => import('pages/home'));
 const VideoUpload = lazy(() => import('pages/upload'));
@@ -37,6 +38,7 @@ function App() {
                 <Route exact path="/movie" element={<MoviesPage />} />
                 <Route exact path="/family" element={<ShowsPage />} />
                 <Route exact path="/login" element={<LoginPage />} />
+                <Route exact path="/register" element={<RegisterPage />} />
                 <Route path="/user">
                   <Route path="/user/profile" element={<UserProfile />} />
                 </Route>
