@@ -3,20 +3,9 @@ import { Link } from 'react-router-dom';
 import { twMerge } from 'tailwind-merge';
 
 import Player from './Player';
+import { minToTime } from 'utilities';
 
 let timer = null;
-
-const minToTime = (d) => {
-  d = Number(d);
-  var h = Math.floor(d / 3600);
-  var m = Math.floor((d % 3600) / 60);
-  var s = Math.floor((d % 3600) % 60);
-
-  var hDisplay = h > 0 ? (h > 9 ? '' : '0') + h + ':' : '';
-  var mDisplay = true ? (m > 9 ? '' : '0') + m + ':' : '';
-  var sDisplay = true ? (s > 9 ? '' : '0') + s : '';
-  return hDisplay + mDisplay + sDisplay;
-};
 
 function Card({ videoId, thumbnail, title, isPlayerCard, ...rest }) {
   const [isHovered, setIsHovered] = useState(false);

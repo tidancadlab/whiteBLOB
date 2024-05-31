@@ -2,8 +2,8 @@ import React, { useEffect, useState, useRef } from 'react';
 import { apiStateStatus } from 'utilities';
 import Hls from 'hls.js';
 
-import { URL } from 'configuration';
 import PlayerControls from 'pages/player/components/controls';
+import protectedApi from 'api/protected.api';
 
 let abortRequest = new AbortController();
 
@@ -39,24 +39,20 @@ function Player({ id, isPlayer, maxHeight, setVideoMetadata }) {
   useEffect(() => {
     onRestAbortController();
 
-    hls.current = new Hls({ maxBufferSize: 5, backBufferLength: 5, lowLatencyMode: true });
+    hls.current = new Hls({ maxBufferSize: 60, backBufferLength: 60, lowLatencyMode: true });
 
     const getVideoUrl = async () => {
       setApiStatus(apiStateStatus.pending);
       try {
-        const response = await fetch(URL.API_BASE_URL.WHITE_BLOB + 'api/video/player/' + id, {
-          method: 'GET',
-          headers: {
-            authorization: 'bearer ' + window.localStorage.getItem('token'),
-          },
+        const response = await protectedApi('api/video/player/' + id, {
           signal: abortRequest.signal,
         });
 
-        if (response.ok) {
-          const result = await response.json();
-          setVideoUrl(result.data.url);
+        if (response.status === 200) {
+          setVideoUrl(response.data.data.url);
+          document.title = 'whiteBLOB | ' + response.data.data.title;
           if (isPlayer) {
-            setVideoMetadata(result.data);
+            setVideoMetadata(response.data.data);
           }
 
           setApiStatus(apiStateStatus.resolved);
@@ -64,7 +60,8 @@ function Player({ id, isPlayer, maxHeight, setVideoMetadata }) {
           setApiStatus(apiStateStatus.rejected);
         }
       } catch (error) {
-        if (error === 'cancel') return;
+        if (error.message === 'canceled') return;
+        console.log(error);
         setApiStatus(apiStateStatus.rejected);
       }
     };
@@ -74,6 +71,7 @@ function Player({ id, isPlayer, maxHeight, setVideoMetadata }) {
     return () => {
       hls.current?.destroy();
       abortRequest.abort('cancel');
+      document.title = 'whiteBLOB';
     };
   }, [id]);
 
@@ -94,13 +92,12 @@ function Player({ id, isPlayer, maxHeight, setVideoMetadata }) {
           player.current.play();
         }
       });
-
       hls.current.on(Hls.Events.LEVEL_SWITCHED, (e, data) => {
-        setHlsData((prev) => ({ ...prev, currentLevel: data.level }));
+        setHlsData((prev) => ({ ...prev, currentLevel: data.level, autoLevelEnabled: hls.current.autoLevelEnabled }));
       });
 
       hls.current.on(Hls.Events.LEVEL_SWITCHING, (e, data) => {
-        setHlsData((prev) => ({ ...prev, nextLevel: data.level, currentLevel: data.level }));
+        setHlsData((prev) => ({ ...prev, nextLevel: data.level, currentLevel: data.level, autoLevelEnabled: hls.current.autoLevelEnabled }));
       });
 
       hls.current.on(Hls.Events.AUDIO_TRACK_SWITCHING, (e, data) => {
@@ -108,24 +105,25 @@ function Player({ id, isPlayer, maxHeight, setVideoMetadata }) {
       });
 
       if (isPlayer) {
-        document.addEventListener('keypress', (e) => {
+        document.addEventListener('keydown', (e) => {
           e.preventDefault();
           const videoPlayer = player.current;
           if (!videoPlayer || e.target.tagName === 'VIDEO' || videoPlayer?.readyState < videoPlayer?.HAVE_FUTURE_DATA) return;
           if (e.code === 'Space') {
             if (videoPlayer?.paused) {
-              console.log(videoPlayer?.paused);
               videoPlayer?.play();
             } else {
               videoPlayer?.pause();
             }
           }
+          return false;
         });
       }
 
-      // document.addEventListener('fullscreenchange', (e) => {
-      //   setMediaContainer((prev) => ({ ...prev, isFullScreen: !prev.isFullScreen }));
-      // });
+      document.addEventListener('fullscreenchange', (e) => {
+        if (!player.current) return;
+        setMediaContainer((prev) => ({ ...prev, isFullScreen: !prev.isFullScreen }));
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [videoUrl]);
@@ -137,11 +135,6 @@ function Player({ id, isPlayer, maxHeight, setVideoMetadata }) {
     controllerTimerId = setTimeout(() => {
       setShowControls(false);
     }, 3000);
-  };
-
-  const onHideController = () => {
-    clearTimeout(controllerTimerId);
-    setShowControls(false);
   };
 
   if (apiStatus === apiStateStatus.pending) {
@@ -163,29 +156,28 @@ function Player({ id, isPlayer, maxHeight, setVideoMetadata }) {
   return (
     <>
       {videoUrl && (
-        <div
-          onMouseMove={onShowControllers}
-          onTouchStart={onShowControllers}
-          onMouseLeave={onHideController}
-          ref={mediaOverlay}
-          className="group relative aspect-video max-h-[90vh]  w-full ">
-          <video
-            autoPlay
-            ref={player}
-            controls
-            style={{ maxHeight: `${maxHeight}px` }}
-            className="h-full w-full bg-black outline-none sm:rounded-lg"></video>
-          {showControls && isPlayer && (
-            <PlayerControls
-              audioTrack={audioTrack}
-              hls={hls}
-              hlsData={hlsData}
-              mediaOverlay={mediaOverlay}
-              player={player}
-              videoUrl={videoUrl}
-              mediaContainer={mediaContainer}
-            />
-          )}
+        <div id="screen" className="relative">
+          <div
+            onMouseMove={onShowControllers}
+            onTouchStart={onShowControllers}
+            // onMouseLeave={onHideController}
+            ref={mediaOverlay}
+            className="group relative aspect-video max-h-[90vh] w-full ">
+            <video autoPlay ref={player} style={{ maxHeight: `${maxHeight}px` }} className="h-full w-full bg-black outline-none sm:rounded-lg"></video>
+            {isPlayer && (
+              <PlayerControls
+                showControls={showControls}
+                audioTrack={audioTrack}
+                hls={hls}
+                hlsData={hlsData}
+                setHlsData={setHlsData}
+                mediaOverlay={mediaOverlay}
+                player={player}
+                videoUrl={videoUrl}
+                mediaContainer={mediaContainer}
+              />
+            )}
+          </div>
         </div>
       )}
     </>
