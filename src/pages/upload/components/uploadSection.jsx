@@ -29,7 +29,7 @@ const UploadFormSection = ({ file, setFile }) => {
    */
   const handleUpload = (file) => {
     try {
-      const chunkSize = 1024 * 1024 * 4;
+      const chunkSize = 1024 * 1024 * 72;
       const chunkList = [];
       let offset = 0;
 
