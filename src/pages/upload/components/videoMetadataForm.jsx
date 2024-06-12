@@ -1,26 +1,21 @@
-import { apiStateStatus } from 'utilities';
-import protectedApi from 'api/protected.api';
-import { Button, Input, Radio } from 'components/form-field';
 import { useState } from 'react';
-import { Alert } from 'components/alert';
+import { apiStateStatus } from 'utilities';
+
+import { Button, Input, Radio } from 'components/form-field';
+import { RenderSelectThumbnailContainer, RenderSelectVideoContainer } from './componentElements';
+import ProgressAndStatus from './uploadStatusCard';
 
 const category = [
-  { id: 0, title: 'Movie' },
-  { id: 1, title: 'Show' },
-  { id: 2, title: 'Other' },
+  { id: 0, title: 'movie' },
+  { id: 1, title: 'show' },
+  { id: 2, title: 'family' },
+  { id: 3, title: 'kids' },
+  { id: 4, title: 'other' },
 ];
 
-let isSaved = false;
-let metadataId = null;
-let errorMessage = null;
-
-const VideoMetadataForm = ({ file }) => {
-  const [isHidden, setIsHidden] = useState(true);
-  const [activeEdit, setActiveEdit] = useState(false);
-  const [apiStatus, setApiStatus] = useState(apiStateStatus.initial);
-
+const FormFields = ({ videoFile, apiUploadStatus, handleStartVideoUpload, handleRestartVideoUpload, handleAbortRequest, disabled }) => {
   const [formData, setFormData] = useState({
-    title: file.name.split('.')[0],
+    title: videoFile?.name.split('.')[0],
     description: '',
     category: category[0].title,
     tags: [],
@@ -35,129 +30,129 @@ const VideoMetadataForm = ({ file }) => {
     setFormData((previous) => ({ ...previous, [name]: value }));
   };
 
-  const onSubmitMetadata = async (e) => {
-    e.preventDefault();
-    setApiStatus(apiStateStatus.pending);
-    try {
-      formData.videoId = file.id;
-      let response = null;
-      if (isSaved) {
-        formData.id = metadataId;
-        response = await protectedApi.put('api/video/profile', formData);
-      } else {
-        response = await protectedApi.post('api/video/profile', formData);
-      }
-      if (response.status === 200) {
-        setApiStatus(apiStateStatus.resolved);
-        errorMessage = 'Successfully Updated';
-      }
-      if (response.status === 409) {
-        setApiStatus(apiStateStatus.resolved);
-        errorMessage = 'Already Saved';
-      }
-      if (response.status === 201) {
-        metadataId = response.data.id;
-        errorMessage = 'Successfully Saved';
-        setApiStatus(apiStateStatus.resolved);
-        isSaved = true;
-        setActiveEdit(false);
-      } else {
-        setApiStatus(apiStateStatus.rejected);
-        errorMessage = 'Something went wrong ' + response.data.error;
-      }
-    } catch (error) {
-      setApiStatus(apiStateStatus.rejected);
-      errorMessage = 'Something went wrong ' + error.message;
-      console.log(error);
-    }
-  };
+  return (
+    <form className="flex flex-col gap-4">
+      <Input disabled={disabled} onChange={onInputChange} name="title" required value={formData.title}>
+        Title
+      </Input>
+      <Input disabled={disabled} onChange={onInputChange} name="description" type="textArea" value={formData.description}>
+        Description
+      </Input>
+      <p className="-mb-2">Category</p>
+      <div className="flex gap-4 overflow-x-auto p-2">
+        {category.map((value, index) => (
+          <Radio
+            disabled={disabled}
+            key={value.id}
+            onChange={onInputChange}
+            checked={formData.category === value.title}
+            aria-checked={formData.category === value.title}
+            className="select-none duration-100 ease-in-out disabled:outline-none peer-checked:outline peer-hover:outline-2 disabled:peer-active:outline-8"
+            name="category"
+            id={value.id}
+            value={value.title}
+            required>
+            {value.title}
+          </Radio>
+        ))}
+      </div>
+      <Input disabled={disabled} onChange={onInputChange} value={formData.tags.join(' ')} name="tags" type="textArea">
+        Tags (put space after every tag){' '}
+      </Input>
+      <div className="flex items-center justify-end gap-4">
+        <div className="flex gap-4 self-end">
+          {apiUploadStatus === apiStateStatus.initial && (
+            <Button
+              onClick={(e) => {
+                e.preventDefault();
+                handleStartVideoUpload({ videoMetaData: formData });
+              }}
+              type="submit">
+              Upload
+            </Button>
+          )}
+          {apiUploadStatus === apiStateStatus.rejected && <Button onClick={handleRestartVideoUpload}>Start</Button>}
+          <Button type="button" disabled={apiUploadStatus !== apiStateStatus.pending} onClick={handleAbortRequest} className="bg-red-500">
+            Cancel
+          </Button>
+        </div>
+      </div>
+    </form>
+  );
+};
+
+/**
+ *
+ * @param {{
+ * video: {
+ *  videoFile: File,
+ *  handleSetVideoFile: function(): void,
+ *  handleRemoveVideoFile: function(): void,
+ * }
+ * thumbnail:{
+ *  thumbnailFile: File,
+ *  thumbnailUrl: string | null
+ *  handleRemoveThumbnailFile: function(): void,
+ *  handleSetThumbnailFile: function(): void,
+ *  handleInitialDirectUrl: function(): void,
+ * }
+ * upload:{
+ *  apiUploadStatus: string,
+ *  handleStartVideoUpload: function({videoMetaData}): void,
+ *  handleRestartVideoUpload: function(): void,
+ *  handleAbortRequest: function(): void,
+ *  videoUploadProgress: {
+ *    rate: number,
+ *    totalChunk: number,
+ *    completedChunks: number,
+ *    loaded: number
+ *  }
+ * }
+ * }}
+ * @returns {import('react').JSX}
+ */
+
+const VideoMetadataForm = ({ video, thumbnail, upload }) => {
+  const { videoFile, handleSetVideoFile, handleRemoveVideoFile } = video;
+  const { thumbnailFile, thumbnailUrl, handleSetThumbnailFile, handleInitialDirectUrl, handleRemoveThumbnailFile } = thumbnail;
+  const { apiUploadStatus, handleAbortRequest, videoUploadProgress, handleRestartVideoUpload, handleStartVideoUpload } = upload;
 
   return (
-    <div
-      aria-disabled={isHidden}
-      className="relative h-full w-full overflow-hidden rounded-2xl bg-gray-800 px-6 aria-disabled:h-8 aria-disabled:bg-transparent">
-      <div className=" p-4 py-8 font-mono text-white">
-        <form className="flex flex-col gap-4" onSubmit={onSubmitMetadata}>
-          <Input onChange={onInputChange} disabled={!activeEdit} name="title" required value={formData.title}>
-            Title
-          </Input>
-          <Input onChange={onInputChange} disabled={!activeEdit} name="description" type="textArea" className="p-2" value={formData.description}>
-            Description
-          </Input>
-          <p className="-mb-2">Category</p>
-          <div className="flex gap-4">
-            {category.map((value, index) => (
-              <Radio
-                key={value.id}
-                onChange={onInputChange}
-                disabled={!activeEdit}
-                checked={formData.category === value.title}
-                aria-checked={formData.category === value.title}
-                className="select-none duration-100 ease-in-out disabled:outline-none peer-checked:outline peer-hover:outline-2 disabled:peer-active:outline-8"
-                name="category"
-                id={value.id}
-                value={value.title}
-                required>
-                {value.title}
-              </Radio>
-            ))}
-          </div>
-          <Input
-            onChange={onInputChange}
-            disabled={!activeEdit}
-            value={formData.tags.join(' ')}
-            name="tags"
-            type="textArea"
-            labelTitle="Tags (put space after every tag)"
-          />
-          <div className="flex items-center justify-end gap-4">
-            <Alert
-              hidden={apiStatus !== apiStateStatus.pending || apiStatus !== apiStateStatus.initial}
-              type={apiStatus !== apiStateStatus.resolved ? 'success' : 'error'}>
-              {errorMessage}
-            </Alert>
-            <div className="flex gap-4 self-end">
-              {activeEdit && (
-                <Button
-                  aria-busy={apiStateStatus.pending === apiStatus}
-                  disabled={apiStateStatus.pending === apiStatus}
-                  className="aria-busy:animate-pulse"
-                  type="submit">
-                  {isSaved ? 'Update' : 'Save'}
-                </Button>
-              )}
-              {!activeEdit && (
-                <Button className="bg-green-500" type="button" onClick={() => setActiveEdit(true)}>
-                  Edit
-                </Button>
-              )}
-              <Button
-                type="button"
-                disabled={apiStateStatus.pending === apiStatus}
-                onClick={() => {
-                  setFormData({
-                    title: file.name.split('.')[0],
-                    category: category[0].title,
-                    description: '',
-                    tags: '',
-                  });
-                }}
-                className="bg-red-500">
-                Reset
-              </Button>
-            </div>
-          </div>
-        </form>
+    <>
+      {videoFile && <ProgressAndStatus chuckProgress={videoUploadProgress} file={videoFile} />}
+      <div aria-expanded={videoFile !== null || thumbnailUrl} className="flex flex-wrap aria-expanded:gap-4 sm:flex-nowrap">
+        <RenderSelectVideoContainer {...{ handleRemoveVideoFile, handleSetVideoFile, videoFile, disabled: apiStateStatus.initial !== apiUploadStatus }} />
+        <RenderSelectThumbnailContainer
+          {...{
+            handleRemoveThumbnailFile,
+            handleSetThumbnailFile,
+            thumbnailFile,
+            thumbnailUrl,
+            videoFile,
+            handleInitialDirectUrl,
+            disabled: apiStateStatus.initial !== apiUploadStatus,
+          }}
+        />
       </div>
-      <Button
-        aria-selected={isHidden}
-        className="absolute right-8 top-0 rounded-b bg-indigo-500 text-white ease-in-out aria-selected:right-0 aria-selected:h-full aria-selected:w-full aria-selected:duration-200"
-        onClick={() => {
-          setIsHidden((previous) => !previous);
-        }}>
-        {isHidden ? 'Show' : 'Hide'}
-      </Button>
-    </div>
+      <div
+        aria-expanded={videoFile !== null}
+        className="pointer-events-none relative h-fit max-h-0 w-full overflow-hidden rounded-2xl bg-gray-800 px-6 duration-300 ease-in-out aria-expanded:pointer-events-auto aria-expanded:max-h-[672px] ">
+        <div className=" p-4 py-8 font-mono text-white">
+          {videoFile !== null && (
+            <FormFields
+              {...{
+                apiUploadStatus,
+                handleAbortRequest,
+                handleRestartVideoUpload,
+                handleStartVideoUpload,
+                videoFile,
+                disabled: apiUploadStatus !== apiStateStatus.initial,
+              }}
+            />
+          )}
+        </div>
+      </div>
+    </>
   );
 };
 
