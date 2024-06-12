@@ -20,7 +20,7 @@ const NavLink = ({ value }) => {
     <Link
       aria-selected={useMatch(value.path)?.pathname === value.path}
       to={value.path}
-      className="flex items-center justify-center gap-2 rounded-lg px-4 py-1 font-semibold text-white duration-200 ease-in-out hover:text-green-500 aria-selected:bg-green-500 aria-selected:text-black">
+      className="flex items-center justify-center gap-2 rounded-lg px-4 py-1 font-semibold text-white duration-200 ease-in-out hover:text-white aria-selected:bg-white aria-selected:text-black">
       <value.icon className="text-xl" />
       <span>{value.name}</span>
     </Link>
@@ -31,6 +31,7 @@ function NavBar({ isButton, position = 'top-4' }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [search, setSearch] = useSearchParams();
 
+  // TODO: implement cookie for auth
   const onLogout = () => {
     const cookies = document.cookie.split('; ');
     const token = cookies.find((v) => v.includes('token'))?.split('=');
@@ -43,12 +44,14 @@ function NavBar({ isButton, position = 'top-4' }) {
   const UserButton = () => {
     if (window.localStorage.getItem('token')) {
       return (
-        <Link
-          to={'/user/profile'}
-          onClick={onLogout}
+        <Button
+          onClick={() => {
+            window.localStorage.clear('token');
+            window.location.reload();
+          }}
           className="flex h-6 w-14 items-center justify-center rounded bg-[#F41B3B] text-xs font-semibold text-white">
-          Profile
-        </Link>
+          Logout
+        </Button>
       );
     }
     return (
@@ -79,7 +82,7 @@ function NavBar({ isButton, position = 'top-4' }) {
         <nav
           aria-checked={isScrolled}
           role="checkbox"
-          className="flex w-screen flex-wrap items-center justify-between gap-2 rounded-3xl bg-black px-5 py-3 outline-green-500 duration-200 ease-out aria-checked:w-[332px] aria-checked:py-2 aria-checked:outline">
+          className="flex w-screen flex-wrap items-center justify-between gap-2 rounded-3xl bg-black px-5 py-3 outline-white duration-200 ease-out aria-checked:w-[332px] aria-checked:py-2 aria-checked:outline">
           <div aria-hidden={isScrolled} className="order-1 flex gap-10 self-stretch aria-hidden:hidden">
             <Link to="/">
               <img className="h-8 sm:h-10" src={logo} alt="logo" />
@@ -94,11 +97,11 @@ function NavBar({ isButton, position = 'top-4' }) {
             <div className="flex gap-2">
               <Input
                 type="search"
+                labelTitle=" "
                 placeholder="Search Videos"
                 value={search.get('search') || ''}
                 onChange={(e) => setSearch({ search: e.target.value })}
                 className={{
-                  label: 'hidden',
                   input: 'h-full pl-3 pr-1',
                   container: 'hidden lg:flex',
                 }}

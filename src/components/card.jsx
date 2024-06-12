@@ -64,7 +64,7 @@ function Card({ videoId, thumbnail, title, isPlayerCard, ...rest }) {
         <div
           aria-checked={isHovered}
           className={twMerge(
-            `group relative flex aspect-video h-full w-full flex-col rounded-md bg-cover bg-center bg-no-repeat shadow outline outline-green-500`,
+            `group relative flex aspect-video h-full w-full flex-col rounded-md bg-cover bg-center bg-no-repeat shadow outline outline-white`,
           )}>
           <Player maxHeight={element.current?.offsetHeight} id={videoId} />
         </div>

@@ -7,22 +7,32 @@ import Card from 'components/card';
 import { NoInternet } from 'components/no-internet';
 import { useSearchParams } from 'react-router-dom';
 
+const cacheVideoApiJsonData = {};
+
 function MoviesPage() {
-  let { allVideoList, setAllVideoList, isOnline } = useContext(StorageContext);
+  let { isOnline } = useContext(StorageContext);
 
   const [apiStatus, setApiStatus] = useState(apiStateStatus.initial);
+  let [allVideoList, setAllVideoList] = useState([]);
   const [search, setSearch] = useSearchParams();
 
   let token = window.localStorage.getItem('token');
 
   const getVideos = async () => {
     setApiStatus(apiStateStatus.pending);
+
+    if (cacheVideoApiJsonData['api/video?category=movie']) {
+      setAllVideoList(cacheVideoApiJsonData['api/video?category=movie']);
+      setApiStatus(apiStateStatus.resolved);
+    }
+
     try {
-      const response = await fetch(URL.API_BASE_URL.WHITE_BLOB + 'api/video?category=movie', { headers: { authorization: `bearer ${token}` } });
+      const response = await fetch(URL.API_BASE_URL.WHITE_BLOB + '/api/video?category=movie', { headers: { authorization: `bearer ${token}` } });
       const data = await response.json();
       if (response.ok) {
         setApiStatus(apiStateStatus.resolved);
         setAllVideoList(data.videos);
+        cacheVideoApiJsonData['api/video?category=movie'] = data.videos;
       } else {
         setApiStatus(apiStateStatus.rejected);
       }
