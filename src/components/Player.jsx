@@ -15,11 +15,17 @@ let controllerTimerId = null;
 
 function Player({ id, isPlayer, maxHeight, setVideoMetadata }) {
   const [apiStatus, setApiStatus] = useState(apiStateStatus.initial);
+  const [showControls, setShowControls] = useState(true);
   const [hlsData, setHlsData] = useState({ level: [], currentLevel: 0 });
-  const [showControls, setShowControls] = useState(false);
   const [audioTrack, setAudioTrack] = useState({ track: [], current: 0 });
+  const [isPlaying, setIsPlaying] = useState('waiting');
+  const [playerData, setPlayerData] = useState({
+    currentTime: 0,
+    duration: 0,
+    volume: 0,
+  });
   const [mediaContainer, setMediaContainer] = useState({ playing: false, seeking: false, isFullScreen: false });
-  const [videoUrl, setVideoUrl] = useState(null);
+  const [videoMetaData, setVideoMetaData] = useState(null);
 
   /**
    * @type {{current: HTMLVideoElement}}
@@ -37,9 +43,22 @@ function Player({ id, isPlayer, maxHeight, setVideoMetadata }) {
   const hls = useRef(null);
 
   useEffect(() => {
+    setPlayerData({
+      currentTime: 0,
+      duration: 0,
+      volume: 0,
+    });
+    const token = window.localStorage.getItem('token');
     onRestAbortController();
 
-    hls.current = new Hls({ maxBufferSize: 60, backBufferLength: 60, lowLatencyMode: true });
+    hls.current = new Hls({
+      xhrSetup: (xhr, url) => {
+        xhr.setRequestHeader('authorization', `bearer ` + token);
+      },
+      enableWorker: true,
+      lowLatencyMode: true,
+      backBufferLength: 90,
+    });
 
     const getVideoUrl = async () => {
       setApiStatus(apiStateStatus.pending);
@@ -49,7 +68,7 @@ function Player({ id, isPlayer, maxHeight, setVideoMetadata }) {
         });
 
         if (response.status === 200) {
-          setVideoUrl(response.data.data.url);
+          setVideoMetaData(response.data.data);
           document.title = 'whiteBLOB | ' + response.data.data.title;
           if (isPlayer) {
             setVideoMetadata(response.data.data);
@@ -73,25 +92,24 @@ function Player({ id, isPlayer, maxHeight, setVideoMetadata }) {
       abortRequest.abort('cancel');
       document.title = 'whiteBLOB';
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   useEffect(() => {
-    if (videoUrl) {
+    if (videoMetaData) {
       hls.current.attachMedia(player.current);
-      hls.current.loadSource(videoUrl);
+      hls.current.loadSource(videoMetaData.url);
 
       hls.current.once(Hls.Events.MANIFEST_PARSED, (event, data) => {
-        if (!isPlayer) {
-          player.current.muted = 'muted';
-        }
-
+        player.current.poster = videoMetaData.thumbnail;
         setHlsData({ level: hls.current.levels, currentLevel: hls.current.nextLevel });
         setAudioTrack({ track: data.audioTracks, current: hls.current.audioTrack });
 
-        if (!player.current?.paused) {
-          player.current.play();
-        }
+        player.current.addEventListener('loadedmetadata', (e) => {
+          setPlayerData((previous) => ({ ...previous, duration: player.current.duration, volume: player.current.volume }));
+        });
       });
+
       hls.current.on(Hls.Events.LEVEL_SWITCHED, (e, data) => {
         setHlsData((prev) => ({ ...prev, currentLevel: data.level, autoLevelEnabled: hls.current.autoLevelEnabled }));
       });
@@ -104,12 +122,44 @@ function Player({ id, isPlayer, maxHeight, setVideoMetadata }) {
         setAudioTrack((previous) => ({ ...previous, current: data.id }));
       });
 
+      hls.current.on(Hls.Events.BUFFER_APPENDED, (e, data) => {
+        setPlayerData((previous) => ({ ...previous, timeRanges: data.timeRanges }));
+      });
+
+      player.current.addEventListener('loadeddata', () => {
+        player.current.play();
+        setIsPlaying(player.current.paused ? 'pause' : 'playing');
+      });
+
+      player.current.addEventListener('playing', (e) => {
+        setIsPlaying('playing');
+      });
+
+      player.current.addEventListener('pause', (e) => {
+        setIsPlaying('pause');
+      });
+
+      player.current.addEventListener('waiting', (e) => {
+        setIsPlaying('waiting');
+      });
+
+      window.addEventListener('keydown', function (e) {
+        if (e.code === 'Space') {
+          document.body.style.overflow = 'hidden';
+        }
+      });
+      window.addEventListener('keyup', function (e) {
+        if (e.code === 'Space') {
+          document.body.style.overflow = 'auto';
+        }
+      });
+
       if (isPlayer) {
-        document.addEventListener('keydown', (e) => {
-          e.preventDefault();
-          const videoPlayer = player.current;
-          if (!videoPlayer || e.target.tagName === 'VIDEO' || videoPlayer?.readyState < videoPlayer?.HAVE_FUTURE_DATA) return;
+        document.addEventListener('keyup', (e) => {
           if (e.code === 'Space') {
+            const videoPlayer = player.current;
+            if (!videoPlayer || e.target.tagName === 'VIDEO' || videoPlayer?.readyState < videoPlayer?.HAVE_FUTURE_DATA) return;
+
             if (videoPlayer?.paused) {
               videoPlayer?.play();
             } else {
@@ -126,7 +176,7 @@ function Player({ id, isPlayer, maxHeight, setVideoMetadata }) {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [videoUrl]);
+  }, [videoMetaData?.url]);
 
   const onShowControllers = () => {
     setShowControls(true);
@@ -134,7 +184,7 @@ function Player({ id, isPlayer, maxHeight, setVideoMetadata }) {
     controllerTimerId = null;
     controllerTimerId = setTimeout(() => {
       setShowControls(false);
-    }, 3000);
+    }, 5000);
   };
 
   if (apiStatus === apiStateStatus.pending) {
@@ -155,25 +205,27 @@ function Player({ id, isPlayer, maxHeight, setVideoMetadata }) {
 
   return (
     <>
-      {videoUrl && (
+      {videoMetaData && (
         <div id="screen" className="relative">
-          <div
-            onMouseMove={onShowControllers}
-            onTouchStart={onShowControllers}
-            // onMouseLeave={onHideController}
-            ref={mediaOverlay}
-            className="group relative aspect-video max-h-[90vh] w-full ">
-            <video autoPlay ref={player} style={{ maxHeight: `${maxHeight}px` }} className="h-full w-full bg-black outline-none sm:rounded-lg"></video>
-            {isPlayer && (
+          <div onMouseMove={onShowControllers} onClick={onShowControllers} ref={mediaOverlay} className="group relative aspect-video max-h-[90vh] w-full ">
+            <video
+              muted="muted"
+              autoPlay
+              ref={player}
+              style={{ maxHeight: `${maxHeight}px` }}
+              className="h-full w-full cursor-none bg-black outline-none sm:rounded-lg"></video>
+            {(showControls || isPlaying !== 'playing') && (
               <PlayerControls
-                showControls={showControls}
+                isPlayer={isPlayer}
+                isPlaying={isPlaying}
+                playerData={playerData}
+                setPlayerData={setPlayerData}
                 audioTrack={audioTrack}
                 hls={hls}
                 hlsData={hlsData}
-                setHlsData={setHlsData}
                 mediaOverlay={mediaOverlay}
                 player={player}
-                videoUrl={videoUrl}
+                videoUrl={videoMetaData.url}
                 mediaContainer={mediaContainer}
               />
             )}

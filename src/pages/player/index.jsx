@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { StorageContext } from 'storage';
 
 import Player from 'components/Player';
@@ -9,23 +9,25 @@ import { useParams } from 'react-router-dom';
 function shuffle(array) {
   let currentIndex = array.length;
 
-  // While there remain elements to shuffle...
   while (currentIndex !== 0) {
-    // Pick a remaining element...
     let randomIndex = Math.floor(Math.random() * currentIndex);
     currentIndex--;
 
-    // And swap it with the current element.
     [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
   }
 }
 
 function PlayerPage() {
-  const { allVideoList, isOnline } = useContext(StorageContext);
+  let { allVideoList, isOnline } = useContext(StorageContext);
   const [videoMetadata, setVideoMetadata] = useState({});
   const { id } = useParams();
 
   shuffle(allVideoList);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    allVideoList = allVideoList.filter((value) => value.id !== id);
+  }, [allVideoList]);
 
   if (!isOnline) {
     return <NoInternet />;
@@ -51,7 +53,7 @@ function PlayerPage() {
           {videoMetadata.title ? (
             <p className="m-4 line-clamp-1 self-start font-bold sm:text-3xl">{videoMetadata.title}</p>
           ) : (
-            <p className="h-10 rounded-md bg-gray-800"></p>
+            <p className="mt-4 h-10 rounded-md bg-gray-800"></p>
           )}
         </div>
       </div>
@@ -63,9 +65,11 @@ function PlayerPage() {
           ) : (
             <p className="h-32 rounded-md bg-gray-800"></p>
           )}
-          <div className="text-sm\ mt-4">
-            <p>- Praveen Kumar (25 April 2022)</p>
-          </div>
+          {videoMetadata.video_created_at && (
+            <div className="text-sm\ mt-4">
+              <p>- Praveen Kumar ({new Date(videoMetadata?.video_created_at).toDateString()})</p>
+            </div>
+          )}
         </div>
         <h1 className="m-4 mb-1 self-start font-bold sm:mb-4 sm:text-3xl">More Videos</h1>
         <div className="mx-4 mb-4 w-[calc(100%-32px)] self-start">
