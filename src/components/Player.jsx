@@ -128,6 +128,7 @@ function Player({ id, isPlayer, maxHeight, setVideoMetadata }) {
 
       player.current.addEventListener('loadeddata', () => {
         player.current.play();
+        player.current.muted = false;
         setIsPlaying(player.current.paused ? 'pause' : 'playing');
       });
 
