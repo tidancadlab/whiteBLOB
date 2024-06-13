@@ -7,22 +7,34 @@ import Card from 'components/card';
 import { NoInternet } from 'components/no-internet';
 import { useSearchParams } from 'react-router-dom';
 
-function ShowsPage() {
-  let { allVideoList, setAllVideoList, isOnline } = useContext(StorageContext);
+const cacheVideoApiJsonData = {};
+
+function ShowsPage({ category }) {
+  let { isOnline } = useContext(StorageContext);
 
   const [apiStatus, setApiStatus] = useState(apiStateStatus.initial);
+  let [allVideoList, setAllVideoList] = useState([]);
   const [search, setSearch] = useSearchParams();
 
   let token = window.localStorage.getItem('token');
 
   const getVideos = async () => {
     setApiStatus(apiStateStatus.pending);
+
+    if (cacheVideoApiJsonData[`/api/video?category=${category || 'show'}`]) {
+      setAllVideoList(cacheVideoApiJsonData[`/api/video?category=${category || 'show'}`]);
+      setApiStatus(apiStateStatus.resolved);
+    }
+
     try {
-      const response = await fetch(URL.API_BASE_URL.WHITE_BLOB + 'api/video?category=show', { headers: { authorization: `bearer ${token}` } });
+      const response = await fetch(URL.API_BASE_URL.WHITE_BLOB + `/api/video?category=${category || 'show'}`, {
+        headers: { authorization: `bearer ${token}` },
+      });
       const data = await response.json();
       if (response.ok) {
         setApiStatus(apiStateStatus.resolved);
         setAllVideoList(data.videos);
+        cacheVideoApiJsonData[`/api/video?category=${category || 'show'}`] = data.videos;
       } else {
         setApiStatus(apiStateStatus.rejected);
       }

@@ -1,14 +1,15 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import { Link, Navigate, Outlet } from 'react-router-dom';
 
-import { Button } from 'components/form-field';
 import Footer from 'components/Footer';
 
 const ProtectedRouter = () =>
   window.localStorage.getItem('token') ? (
     <>
-      <Button className="bg-green-500 text-black m-8" onClick={() => window.history.back()}>
-        Back
-      </Button>
+      <div className="flex h-20 justify-center py-4">
+        <Link to="/">
+          <img className="h-full" src="/img/LOGO_314p.3af9dce3b8ba48029249.png" alt="" />
+        </Link>
+      </div>
       <Outlet />
       <Footer />
     </>

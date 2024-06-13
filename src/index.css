@@ -88,3 +88,10 @@ textarea::-webkit-scrollbar {
   top: 50%;
   transform: translateX(-12.7%);
 }
+iframe#webpack-dev-server-client-overlay {
+  display: none;
+}
+
+body::-webkit-scrollbar {display: none;} /* Chrome, Safari and Opera */
+body {-ms-overflow-style: none;}  /* IE and Edge */
+html {scrollbar-width: none;} 

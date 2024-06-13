@@ -29,7 +29,7 @@ const LoginPage = () => {
       setLoginResult(null);
     } else {
       try {
-        const response = await fetch(`${URL.API_BASE_URL.WHITE_BLOB}api/auth/login`, {
+        const response = await fetch(`${URL.API_BASE_URL.WHITE_BLOB}/api/auth/login`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
