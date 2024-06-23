@@ -18,7 +18,7 @@ function shuffle(array) {
 }
 
 function PlayerPage() {
-  let { allVideoList, isOnline } = useContext(StorageContext);
+  let { studioVideos: allVideoList, isOnline } = useContext(StorageContext);
   const [videoMetadata, setVideoMetadata] = useState({});
   const { id } = useParams();
 

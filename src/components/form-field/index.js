@@ -1,7 +1,3 @@
-import FormButton from './button';
-import FormInput from './input';
-import FormRadio from './radio';
-
-export const Button = FormButton;
-export const Input = FormInput;
-export const Radio = FormRadio;
+export { default as Button } from './button';
+export { default as Input } from './input';
+export { default as Radio } from './radio';

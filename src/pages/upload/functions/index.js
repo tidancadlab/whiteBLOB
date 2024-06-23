@@ -5,6 +5,8 @@
 
 import axios from 'axios';
 
+const imageColorStorage = {};
+
 /**
  *
  * @param {import("react-image-crop").Crop | import("react-image-crop").PercentCrop} cropDimension
@@ -36,9 +38,10 @@ export const offscreenCanvasImageCrop = (cropDimension, imageUrl, callback) => {
 
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
-      canvas.height = Math.min(height, 607.4999999999999);
-      canvas.width = Math.min(width, 1080);
+      canvas.height = Math.min(height, 1080);
+      canvas.width = Math.min(width, 1920);
       ctx.drawImage(image, x, y, width, height, 0, 0, canvas.width, canvas.height);
+
       const url = canvas.toDataURL('image/jpeg');
       resolve(url);
     };
@@ -140,3 +143,45 @@ export function dataURItoArrayBuffer(dataURI) {
 }
 
 // TODO: new feature - grab 3 image from selected video for thumbnail
+
+/**
+ *
+ * @param {string} url
+ */
+export const imageToColor = async (url, cb) => {
+  if (imageColorStorage[url]) {
+    cb(imageColorStorage[url]);
+    return;
+  }
+  const image = new Image();
+  image.src = url;
+  image.setAttribute('crossorigin', 'anonymous');
+  image.onload = async () => {
+    const { naturalWidth, naturalHeight } = image;
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.height = naturalHeight;
+    canvas.width = naturalWidth;
+    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+    // Get the pixel data
+    const pixelData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+
+    // Get the average color
+    const averageColor = [0, 0, 0];
+    let count = 0;
+    for (let i = 0; i < pixelData.length; i += 4) {
+      if (pixelData[i] < 25 || pixelData[i + 1] < 25 || pixelData[i + 2] < 25) {
+        continue;
+      }
+      averageColor[0] += pixelData[i];
+      averageColor[1] += pixelData[i + 1];
+      averageColor[2] += pixelData[i + 2];
+      count++;
+    }
+
+    const hexColor = '#' + averageColor.map((x) => (~~(x / count)).toString(16)).join('');
+    imageColorStorage[url] = hexColor;
+    cb(hexColor);
+  };
+};

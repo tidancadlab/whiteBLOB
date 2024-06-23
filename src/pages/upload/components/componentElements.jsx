@@ -26,7 +26,7 @@ export const RenderSelectVideoContainer = ({ videoFile, handleSetVideoFile, hand
       </div>
     ) : (
       <Input
-        accept="video/*, .mkv"
+        accept="video/*, video/mkv"
         className={{
           container: 'rounded-2xl bg-transparent p-4 text-white',
           label: 'flex cursor-pointer items-center justify-center rounded-2xl p-4 text-2xl outline-dashed outline-1',

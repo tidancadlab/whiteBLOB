@@ -9,6 +9,8 @@ import LoadingComponent from 'components/loadingComponent';
 import NoNavRoute from 'router/no-nav.route';
 import UserProfile from 'pages/user-profile';
 import RegisterPage from 'pages/register';
+import StudioPage from 'pages/studio';
+import StudioEdit from 'pages/studio/edit';
 
 const HomePage = lazy(() => import('pages/home'));
 const VideoUpload = lazy(() => import('pages/upload'));
@@ -20,18 +22,18 @@ const ShowsPage = lazy(() => import('pages/shows'));
 
 function App() {
   const isOnline = useIsOnline();
-  const [allVideoList, setAllVideoList] = useState([]);
+  const [studioVideos, setStudioVideos] = useState([]);
 
   return (
     <StorageContext.Provider
       value={{
         isOnline,
-        allVideoList,
-        setAllVideoList,
+        studioVideos,
+        setStudioVideos,
       }}>
       <BrowserRouter>
         <Suspense fallback={<LoadingComponent />}>
-          <div className="flex min-h-screen flex-col bg-black">
+          <div className="relative flex min-h-screen flex-col bg-black">
             <Routes>
               <Route path="/" element={<CustomRoute />}>
                 <Route exact path="/" element={<HomePage />} />
@@ -39,6 +41,10 @@ function App() {
                 <Route exact path="/family" element={<ShowsPage />} />
                 <Route exact path="/login" element={<LoginPage />} />
                 <Route exact path="/register" element={<RegisterPage />} />
+                <Route exact path="/studio">
+                  <Route path="/studio" element={<StudioPage />} />
+                  <Route path="/studio/:id/edit" element={<StudioEdit />} />
+                </Route>
                 <Route path="/user">
                   <Route path="/user/profile" element={<UserProfile />} />
                 </Route>

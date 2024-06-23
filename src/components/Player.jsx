@@ -188,10 +188,12 @@ function Player({ id, isPlayer, maxHeight, setVideoMetadata }) {
     }, 5000);
   };
 
+  console.log(apiStatus);
+
   if (apiStatus === apiStateStatus.pending) {
     return (
       <div className="flex aspect-video h-full max-h-[80vh] w-full items-center justify-center bg-gray-800 text-xl font-extrabold text-gray-950 sm:text-7xl">
-        <p className="animate-pulse text-[80%]">Loading...</p>
+        <img src="img/gif/animatedLogo.gif" alt="" />
       </div>
     );
   }

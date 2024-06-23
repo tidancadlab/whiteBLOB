@@ -54,7 +54,7 @@ function MoviesPage() {
   if (apiStatus === apiStateStatus.pending) {
     return (
       <div className="flex w-full grow items-center justify-center text-xl font-extrabold text-gray-700 sm:text-7xl">
-        <p className="animate-pulse text-[80%]">Loading...</p>
+        <img src="img/gif/animatedLogo.gif" alt="" />
       </div>
     );
   }
